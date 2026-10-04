@@ -1,1 +1,1 @@
-# vtek_scandoubler
+# VTek ScanDoubler
