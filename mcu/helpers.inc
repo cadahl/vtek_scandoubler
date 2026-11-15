@@ -1,7 +1,7 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl ï¿½dahl
+;  (c)2026 VTek/Carl Ådahl
 ; -------------------------
 
 .equ CLK_PER	 = 28636360
@@ -25,25 +25,27 @@
     .equ field##_##name##_BM       = (1 << (n))
 
 
-; Generate a (looped) wait for the specified exact nr of cycles.
+; Generate an efficient NOP sequence for the specified exact nr of cycles.
 .macro wait
     ; Args:
     ;	Number of cycles to wait.
     ; Clobbers:
     ;   reg_temp
-.if (@0 / 3) > 255
-    .error "Argument too large. Use multiple waits."
-.endif
-.if @0 >= 3
-    ldi     reg_temp, @0 / 3
+.if ((@0) / 3) > 255
+    wait(255*3)
+    wait((@0)-(255*3))
+.else
+.if (@0) >= 3
+    ldi     reg_temp, (@0) / 3	; (1c)
 waitloop:
-    dec     reg_temp
-    brne    waitloop
+    dec     reg_temp		; (1c)
+    brne    waitloop		; (2c/1c)
 .endif
-.if (@0 % 3) > 0
-    nop
+.if ((@0) % 3) > 0
+    nop				; (1c)
 .endif
-.if (@0 % 3) > 1
-    nop
+.if ((@0) % 3) > 1
+    nop				; (1c)
+.endif
 .endif
 .endm

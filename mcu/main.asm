@@ -10,7 +10,7 @@
 
 .include "helpers.inc"
 
-//#define ENABLE_DBG_TX
+#define ENABLE_DBG_TX
 ;#define ENABLE_OSD1
 
 .equ NBR_MEASURE_FRAMES         = 16    ; Number of frames over which measurements must agree.
@@ -70,21 +70,14 @@ DECLARE_PIN(PORTF, STREQU, 2)
 DECLARE_PIN(PORTF, STRVSTART, 3)
 DECLARE_PIN(PORTF, DBG_TX, 5)
 
-    .cseg
-    .org 0
-    rjmp    reset
-
-.macro blanked_scanline
-    ; Clobbers:
-    ;   ASSUME NOTHING!
-    out     VPORTD_OUT, reg_zero
-.endm
-
-
 ; --------------------------
 ;  C O D E    S E G M E N T
 ; --------------------------
     .cseg
+    .org 0
+    rjmp    reset
+    ; INTERRUPT VECTORS GO HERE
+
     .org 0x100
 .include "cfg.inc"
 .include "dbg_tx.inc"
@@ -267,7 +260,7 @@ ntsc_frame:
     ldi     reg_lcount, NTSC_VBLANK_LINES
 ntsc_blank_line:
     rcall   strobes_wait_for_next_hstart
-    blanked_scanline
+    out     VPORTD_OUT, reg_zero
     dec     reg_lcount
     brne    ntsc_blank_line
 
@@ -305,7 +298,7 @@ pal_frame:
     ldi     reg_lcount, PAL_VBLANK_LINES
 pal_blank_line:
     rcall   strobes_wait_for_next_hstart
-    blanked_scanline
+    out     VPORTD_OUT, reg_zero
     dec     reg_lcount
     brne    pal_blank_line
 
@@ -368,10 +361,7 @@ visible_scanline:
     out     VPORTD_OUT, reg_temp
 
     ; Clock out pixels
-    wait    180
-    wait    180
-    wait    180
-    wait    180
+    wait    720
 
     ; Disable output and read
     cbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
@@ -388,10 +378,7 @@ visible_scanline:
     sbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
 
     ; Clocking out pixels
-    wait    180
-    wait    180
-    wait    180
-    wait    180
+    wait    720
 
     ; Disable output and read
     cbi     VPORTD_OUT, PORTD_FMEM_OE_PIN

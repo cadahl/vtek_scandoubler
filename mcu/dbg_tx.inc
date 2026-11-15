@@ -15,7 +15,7 @@
 
 .equ DBG_TX_FIFO_SIZE           = 256
 
-.equ DBG_TX_BAUD                = 115200
+.equ DBG_TX_BAUD                = 9600
 
 .equ DBG_TX_CYCLES_PER_BIT = CLK_PER / DBG_TX_BAUD
 
@@ -33,6 +33,11 @@
 
 
     .cseg
+; this is placed here to be near the branch.
+dbg_tx_transmit_one_fifo_empty:
+    ldi	    reg_temp, 4			    ; EOT (FIFO empty)
+    ret
+
 dbg_tx_transmit_one:
     ; Clobbers:
     ;   reg_temp, reg_temp2, XL, XH
@@ -96,10 +101,6 @@ dbg_tx_transmit_one_skip_send:
 .endif
     mov     reg_dbg_tx_rp, XL		    ; (1c) store the advanced and wrapped read pointer.
 
-    ret
-
-dbg_tx_transmit_one_fifo_empty:
-    ldi	    reg_temp, 4			    ; EOT (FIFO empty)
     ret
 
 
