@@ -19,6 +19,7 @@ wait_for_strvbl_set:
     in	    reg_temp, VPORTF_IN
     sbrs    reg_temp, PORTF_STRVSTART_PIN
     rjmp    wait_for_strvbl_set
+    in	    reg_temp, VPORTF_IN
     ret
 
 strobes_wait_for_next_hstart:
@@ -32,5 +33,6 @@ wait_for_strhstart_set:
     in	    reg_temp, VPORTF_IN
     sbrs    reg_temp, PORTF_STRHSTART_PIN
     rjmp    wait_for_strhstart_set
+    in	    reg_temp, VPORTF_IN
     ret
 

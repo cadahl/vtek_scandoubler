@@ -159,6 +159,7 @@ measure_frame:
 
     ; Field 1
     rcall   strobes_wait_for_next_vstart
+
     sbrc    reg_temp, PORTF_STREQU_PIN              ; STREQU is seen in LACED modes.
     ori     reg_temp2, MEASURE_FLAG_SAW_STREQU_BM   ; Make a note that we saw it.
     sbrc    reg_temp, PORTF_STRLONG_PIN             ; STRLONG is used in NTSC modes.
@@ -171,7 +172,7 @@ measure_blank_line_f1:
     sbrc    reg_temp, PORTF_STRLONG_PIN             ; STRLONG is used in NTSC modes.
     ori     reg_temp2, MEASURE_FLAG_SAW_STRLONG_BM  ; Make a note that we saw it.
     sbrs    reg_temp, PORTF_STRVSTART_PIN           ; either STRVBL or STRLONG (merged in the GAL).
-    rjmp    measure_blank_line_end_f1
+    rjmp    measure_blank_line_end_f1               ; exit if we aren't in vblank
     inc     reg_lcount                              ; Count the number of lines we spend in VBLANK.
     rjmp    measure_blank_line_f1
 measure_blank_line_end_f1:
@@ -190,7 +191,7 @@ measure_blank_line_f2:
     sbrc    reg_temp, PORTF_STRLONG_PIN             ; STRLONG is used in NTSC modes.
     ori     reg_temp2, MEASURE_FLAG_SAW_STRLONG_BM  ; Make a note that we saw it.
     sbrs    reg_temp, PORTF_STRVSTART_PIN           ; either STRVBL or STRLONG (merged in the GAL).
-    rjmp    measure_blank_line_end_f2
+    rjmp    measure_blank_line_end_f2               ; exit if we aren't in vblank
     inc     reg_lcount                              ; Count the number of lines we spend in VBLANK.
     rjmp    measure_blank_line_f2
 measure_blank_line_end_f2:
