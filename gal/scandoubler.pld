@@ -1,0 +1,70 @@
+Name       scandoubler.pld;
+Partno     ;
+Date       ;
+Revision   ;
+Designer   ;
+Company    ;
+Assembly   ;
+Location   ;
+Device     G16V8MS;
+
+PIN 1 = C7M;
+PIN 2 = RGA8;
+PIN 3 = RGA7;
+PIN 4 = RGA6;
+PIN 5 = RGA5;
+PIN 6 = RGA4;
+PIN 7 = RGA3;
+PIN 8 = RGA2;
+PIN 9 = RGA1;
+
+PIN 11 = !OE;
+PIN 12 = CFGCLK; // R2
+PIN 13 = !NOT_CCK_AND_DFF06A_MATCH;
+PIN 14 = STRLONG;
+PIN 15 = STRHSTART;
+PIN 16 = CCK;
+PIN 17 = STREQU;
+PIN 18 = STRVSTART;
+PIN 19 = CFGDAT; // R2
+
+FIELD ADDRESS = [RGA8, RGA7, RGA6, RGA5, RGA4, RGA3, RGA2, RGA1];
+
+STREQU_MATCH = ADDRESS:'h'38;
+STRVBL_MATCH = ADDRESS:'h'3A;
+STRHOR_MATCH = ADDRESS:'h'3C;
+STRLONG_MATCH = ADDRESS:'h'3E;
+DFF068_MATCH = ADDRESS:'h'68; // CFG 0-bit
+DFF06A_MATCH = ADDRESS:'h'6A; // CFG 1-bit
+
+STRHSTART.d = 
+	(CCK & STRHOR_MATCH) #
+	(CCK & STREQU_MATCH) #
+	(CCK & STRLONG_MATCH) #
+	(CCK & STRVBL_MATCH);
+
+STREQU.d =
+	(CCK & STREQU_MATCH);
+
+STRLONG.d =
+	(CCK & STRLONG_MATCH);
+
+STRVSTART.d =
+	(CCK & STRVBL_MATCH) #
+	(CCK & STREQU_MATCH);
+
+// SPI config interface
+
+NOT_CCK_AND_DFF06A_MATCH =
+	(CCK & DFF06A_MATCH);
+
+// Store incoming cfg bit.
+CFGDAT.d =
+	(CCK & DFF068_MATCH) #
+	(NOT_CCK_AND_DFF06A_MATCH & CFGDAT);	
+
+// Lower the cfg clock as well. 
+// It will rise when CCK drops, clocking in the bit on the AVR side.
+CFGCLK.d =
+	(CCK & DFF068_MATCH) # 
+	(CCK & DFF06A_MATCH);
