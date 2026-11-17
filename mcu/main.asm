@@ -1,7 +1,7 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl Ådahl
+;  (c)2026 VTek/Carl Ã…dahl
 ; -------------------------
 
 .nolist
@@ -68,24 +68,25 @@ DECLARE_PIN(PORTF, STRLONG, 0)
 DECLARE_PIN(PORTF, STRHSTART, 1)
 DECLARE_PIN(PORTF, STREQU, 2)
 DECLARE_PIN(PORTF, STRVSTART, 3)
+DECLARE_PIN(PORTF, CCK, 4)
 DECLARE_PIN(PORTF, DBG_TX, 5)
 
-; --------------------------
-;  C O D E    S E G M E N T
-; --------------------------
+    ; --------------------------
+    ;  C O D E    S E G M E N T
+    ; --------------------------
     .cseg
-    .org 0
+    .org    0
     rjmp    reset
     ; INTERRUPT VECTORS GO HERE
 
-    .org 0x100
+    .org    INT_VECTORS_SIZE
+.include "cck_sync.inc"
 .include "cfg.inc"
 .include "dbg_tx.inc"
 .include "osd.inc"
 .include "fmem.inc"
 .include "strobes.inc"
 
-    .cseg
 reset:
     cli
 
@@ -93,7 +94,7 @@ reset:
     clr     reg_one
     inc     reg_one
 
-    fmem_init
+    rcall   fmem_init
 
     ; HSYNC output (active high)
     ; --------------------------
@@ -120,9 +121,11 @@ reset:
     sts     CLKCTRL_MCLKCTRLA, reg_temp2
 
 clock_wait:
-    lds     reg_temp2, CLKCTRL_MCLKSTATUS            ; Loop until main clock has switched over.
+    lds     reg_temp2, CLKCTRL_MCLKSTATUS           ; Loop until main clock has switched over.
     sbrc    reg_temp2, CLKCTRL_SOSC_bp
     rjmp    clock_wait
+
+    rcall   cck_sync_init
 
     rcall   cfg_init
 #ifdef ENABLE_DBG_TX
@@ -272,7 +275,41 @@ ntsc_blank_line:
     ldi     reg_lcount, NTSC_TOTAL_LINES-NTSC_VBLANK_LINES
 ntsc_visible_line:
     rcall   strobes_wait_for_next_hstart
-    rcall   visible_scanline
+
+    rcall   fmem_prepare_write_address
+    rcall   fmem_init_write
+
+    ; It takes 17 write-cycles (34 of our cycles) before we can enable WE/IE.
+    ; Set up the read address and init read meanwhile.
+
+    rcall   fmem_prepare_read_address
+    rcall   fmem_init_read
+
+    ; It takes 55 read-cycles before we can enable RE/OE
+    wait    55
+
+    fmem_start_read_and_write
+
+    ; Clock out pixels
+    wait    720
+
+    fmem_stop_read
+
+    rcall   fmem_prepare_read_address
+    rcall   fmem_init_read
+
+    ; It takes 55 read-cycles before we can enable RE/OE
+    wait    55
+
+    ; Enable output and read
+    fmem_start_read
+
+    ; Clocking out pixels
+    wait    720
+
+    fmem_stop_read
+    fmem_stop_write
+
     inc     reg_line_l
     dec     reg_lcount
     breq    ntsc_end_visible_line
@@ -313,7 +350,41 @@ pal_blank_line:
     ldi     reg_lcount, 255
 pal_visible_line:
     rcall   strobes_wait_for_next_hstart
-    rcall   visible_scanline
+
+    rcall   fmem_prepare_write_address
+    rcall   fmem_init_write
+
+    ; It takes 17 write-cycles (34 of our cycles) before we can enable WE/IE.
+    ; Set up the read address and init read meanwhile.
+
+    rcall   fmem_prepare_read_address
+    rcall   fmem_init_read
+
+    ; It takes 55 read-cycles before we can enable RE/OE
+    wait    55
+
+    fmem_start_read_and_write
+
+    ; Clock out pixels
+    wait    720
+
+    fmem_stop_read
+
+    rcall   fmem_prepare_read_address
+    rcall   fmem_init_read
+
+    ; It takes 55 read-cycles before we can enable RE/OE
+    wait    55
+
+    ; Enable output and read
+    fmem_start_read
+
+    ; Clocking out pixels
+    wait    720
+
+    fmem_stop_read
+    fmem_stop_write
+
     inc     reg_line_l
     dec     reg_lcount
     breq    pal_end_visible_line
@@ -323,7 +394,7 @@ pal_end_visible_line:
     ldi     reg_lcount, PAL_TOTAL_LINES-PAL_VBLANK_LINES-255
 pal_visible_line2:
     rcall   strobes_wait_for_next_hstart
-    rcall   visible_scanline
+
     inc     reg_line_l
     adc     reg_line_h, reg_zero
     dec     reg_lcount
@@ -333,59 +404,10 @@ pal_end_visible_line2:
 
     rjmp    pal_frame
 
+
 measure_msg:
     .db "MEASURE", 13, 10, 0
 ntsc_msg:
     .db "NTSC", 13, 10, 0, 0
 pal_msg:
     .db "PAL", 13, 10, 0
-
-
-visible_scanline:
-    ; Clobbers:
-    ;   ASSUME NOTHING!
-    fmem_prepare_write_address
-    fmem_init_write
-
-    ; It takes 17 write-cycles (34 of our cycles) before we can enable WE/IE.
-    ; Set up the read address and init read meanwhile.
-
-    fmem_prepare_read_address
-    fmem_init_read
-
-    ; It takes 55 read-cycles before we can enable RE/OE
-    wait    54
-
-    ; Enable input and write
-    ; Enable output and read
-    ldi     reg_temp, PORTD_FMEM_IE_BM | PORTD_FMEM_WE_BM | PORTD_FMEM_RE_BM | PORTD_FMEM_OE_BM
-    out     VPORTD_OUT, reg_temp
-
-    ; Clock out pixels
-    wait    720
-
-    ; Disable output and read
-    cbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
-    cbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
-
-    fmem_prepare_read_address
-    fmem_init_read
-
-    ; It takes 55 read-cycles before we can enable RE/OE
-    wait    55
-
-    ; Enable output and read
-    sbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
-    sbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
-
-    ; Clocking out pixels
-    wait    720
-
-    ; Disable output and read
-    cbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
-    cbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
-
-    ; Disable input and write
-    cbi     VPORTD_OUT, PORTD_FMEM_WE_PIN
-    cbi     VPORTD_OUT, PORTD_FMEM_IE_PIN
-    ret

@@ -1,7 +1,7 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl Ådahl
+;  (c)2026 VTek/Carl Ã…dahl
 ; -------------------------
 
 .equ CLK_PER	 = 28636360
@@ -38,14 +38,14 @@
 .if (@0) >= 3
     ldi     reg_temp, (@0) / 3	; (1c)
 waitloop:
-    dec     reg_temp		; (1c)
-    brne    waitloop		; (2c/1c)
+    dec     reg_temp            ; (1c)
+    brne    waitloop            ; (2c/1c)
 .endif
 .if ((@0) % 3) > 0
-    nop				; (1c)
+    nop                         ; (1c)
 .endif
 .if ((@0) % 3) > 1
-    nop				; (1c)
+    nop                         ; (1c)
 .endif
 .endif
 .endm

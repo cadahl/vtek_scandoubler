@@ -1,22 +1,23 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl Ådahl
+;  (c)2026 VTek/Carl Ã…dahl
 ; -------------------------
 ; Control routines for TMS4C2971 field memory
 
-.macro fmem_init
+    .cseg
+
+; Initialize, but put the TMS4C2971 in the initial idle state (not even reset yet).
+fmem_init:
     ; Clobbers:
     ;	reg_temp
-
-    ; TMS4C2971 control pins (active high)
+    out     VPORTD_OUT, reg_zero	    ; All control pins inactive for now.
     ldi     reg_temp, PORTD_FMEM_OE_BM | PORTD_FMEM_RE_BM | PORTD_FMEM_RSTR_BM | PORTD_FMEM_RSTW_BM | PORTD_FMEM_WE_BM | PORTD_FMEM_IE_BM
-    out     VPORTD_OUT, reg_zero
-    sts     PORTD_DIRSET, reg_temp
-.endm
+    sts     PORTD_DIRSET, reg_temp	    ; Make it an output.
+    ret
 
 ; Prepare the address registers for a read from reg_rline_h/l
-.macro fmem_prepare_read_address
+fmem_prepare_read_address:
     ; Inputs:
     ;	reg_rline_h, reg_rline_l
     ; Outputs:
@@ -93,10 +94,10 @@
     bld     reg_A1, PORTD_FMEM_OE_PIN
 
     ; No need for reg_A0 since we have shifted a zero into that position.
-.endm
+    ret
 
 ; Prepare the address registers for a write to reg_wline_h/l.
-.macro fmem_prepare_write_address
+fmem_prepare_write_address:
     ; Inputs:
     ;	reg_wline_h, reg_wline_l
     ; Outputs:
@@ -176,10 +177,10 @@
     bld     reg_A1, PORTD_FMEM_IE_PIN
 
     ; No need for reg_A0 since we have shifted a zero into that position.
-.endm
+    ret
 
 ; Reset the read side of the field memory and transfer the read address.
-.macro fmem_init_read
+fmem_init_read:
     ; Inputs:
     ;   reg_A1-reg_A12
     ; Clobbers:
@@ -202,10 +203,10 @@
     out     VPORTD_OUT, reg_A2                              ; RSTR=0 OE=A2  RE=0 Fifteenth clock
     out     VPORTD_OUT, reg_A1                              ; RSTR=0 OE=A1  RE=0 Sixteenth clock
     out     VPORTD_OUT, reg_zero                            ; RSTR=0 OE=0   RE=0 Seventeenth clock
-.endm
+    ret
 
 ; Reset the write side of the field memory and transfer the write address.
-.macro fmem_init_write
+fmem_init_write:
     ; Inputs:
     ;   reg_A1-reg_A12
     ; Clobbers:
@@ -245,4 +246,25 @@
     nop
     out     VPORTD_OUT, reg_zero                            ; RSTW=0 IE=0   WE=0 Seventeenth clock
     nop
+    ret
+
+
+.macro fmem_start_read
+    sbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
+    sbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
+.endm
+
+.macro fmem_stop_read
+    cbi     VPORTD_OUT, PORTD_FMEM_OE_PIN
+    cbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
+.endm
+
+.macro fmem_stop_write
+    cbi     VPORTD_OUT, PORTD_FMEM_WE_PIN
+    cbi     VPORTD_OUT, PORTD_FMEM_IE_PIN
+.endm
+
+.macro fmem_start_read_and_write
+    ldi     reg_temp, PORTD_FMEM_IE_BM | PORTD_FMEM_WE_BM | PORTD_FMEM_RE_BM | PORTD_FMEM_OE_BM
+    out     VPORTD_OUT, reg_temp
 .endm

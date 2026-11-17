@@ -1,7 +1,7 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl Ådahl
+;  (c)2026 VTek/Carl Ã…dahl
 ; -------------------------
 ; CFG routines - SPI slave on PC0-PC3
 

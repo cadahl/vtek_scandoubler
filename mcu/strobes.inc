@@ -1,38 +1,50 @@
+; -------------------------
+;  VTek ScanDoubler Rev. 1
+;     DUBLINA firmware
+;  (c)2026 VTek/Carl Ådahl
+; -------------------------
+; Strobes from GAL
 
     .cseg
-
 strobes_init:
-    ; GAL address decoder strobe inputs (active high)
-    ; -----------------------------------------------
+    ; Clobbers:
+    ;   reg_temp
     ldi     reg_temp, PORTF_STRHSTART_BM | PORTF_STREQU_BM | PORTF_STRVSTART_BM | PORTF_STRLONG_BM
     sts     PORTF_DIRCLR, reg_temp
+
+    ldi     reg_temp, PORT_ISC_RISING_gc
+    sts     PORTF_STRHSTART_PINCTRL, reg_temp
+    sts     PORTF_STREQU_PINCTRL, reg_temp
+    sts     PORTF_STRVSTART_PINCTRL, reg_temp
+    sts     PORTF_STRLONG_PINCTRL, reg_temp
+
+    sbi     VPORTF_INTFLAGS, PORTF_STRHSTART_PIN
+    sbi     VPORTF_INTFLAGS, PORTF_STREQU_PIN
+    sbi     VPORTF_INTFLAGS, PORTF_STRVSTART_PIN
+    sbi     VPORTF_INTFLAGS, PORTF_STRLONG_PIN
     ret
 
 strobes_wait_for_next_vstart:
-    ; Output:
+    ; Clobbers:
     ;   reg_temp
-wait_for_strvbl_clear:
-    in	    reg_temp, VPORTF_IN
+wait_until_not_in_vblank:
+    rcall   strobes_wait_for_next_hstart
     sbrc    reg_temp, PORTF_STRVSTART_PIN
-    rjmp    wait_for_strvbl_clear
-wait_for_strvbl_set:
-    in	    reg_temp, VPORTF_IN
+    rjmp    wait_until_not_in_vblank
+wait_until_in_vblank:
+    rcall   strobes_wait_for_next_hstart
     sbrs    reg_temp, PORTF_STRVSTART_PIN
-    rjmp    wait_for_strvbl_set
-    in	    reg_temp, VPORTF_IN
+    rjmp    wait_until_in_vblank
     ret
 
 strobes_wait_for_next_hstart:
     ; Output:
     ;   reg_temp
-wait_for_strhstart_clear:
-    in	    reg_temp, VPORTF_IN
-    sbrc    reg_temp, PORTF_STRHSTART_PIN
-    rjmp    wait_for_strhstart_clear
-wait_for_strhstart_set:
-    in	    reg_temp, VPORTF_IN
-    sbrs    reg_temp, PORTF_STRHSTART_PIN
-    rjmp    wait_for_strhstart_set
-    in	    reg_temp, VPORTF_IN
+    ldi     reg_temp, PORTF_STRHSTART_BM | PORTF_STREQU_BM | PORTF_STRVSTART_BM | PORTF_STRLONG_BM
+    out     VPORTF_INTFLAGS, reg_temp       ; Clear interrupt flags to get a blank slate.
+strobes_wait_for_next_hstart_loop:          ; Loop until next HSTART
+    sbis    VPORTF_INTFLAGS, PORTF_STRHSTART_PIN
+    rjmp    strobes_wait_for_next_hstart_loop
+    in	    reg_temp, VPORTF_INTFLAGS       ; Read all the interrupt flags now.
+    out     VPORTF_INTFLAGS, reg_temp       ; Clear the interrupt flags.
     ret
-

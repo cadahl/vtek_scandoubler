@@ -1,7 +1,7 @@
 ; -------------------------
 ;  VTek ScanDoubler Rev. 1
 ;     DUBLINA firmware
-;  (c)2026 VTek/Carl Ådahl
+;  (c)2026 VTek/Carl Ã…dahl
 ; -------------------------
 ; OSD routines
 
@@ -13,16 +13,16 @@ osd1_init:
     ldi     reg_temp, PORTA_OSD2_BM
     sts     PORTA_DIRCLR, reg_temp
 
-    ldi     reg_temp, PORTMUX_USART0_ALT1_gc            ; We want MOSI at PA4.
+    ldi     reg_temp, PORTMUX_USART0_ALT1_gc    ; We want MOSI at PA4.
     sts     PORTMUX_USARTROUTEA, reg_temp
 
-    ldi     reg_temp, PORTA_OSD1_BM                     ; MOSI pin is output.
+    ldi     reg_temp, PORTA_OSD1_BM             ; MOSI pin is output.
     sts     PORTA_DIRSET, reg_temp
 
-    sts     USART0_BAUDL, reg_zero                      ; CLK_PER/2 for 14MHz pixel clock.
+    sts     USART0_BAUDL, reg_zero              ; CLK_PER/2 for 14MHz pixel clock.
     sts     USART0_BAUDH, reg_zero
 
-    ldi     reg_temp, USART_CMODE_MSPI_gc               ; USART in MSPI mode.
+    ldi     reg_temp, USART_CMODE_MSPI_gc       ; USART in MSPI mode.
     sts     USART0_CTRLC, reg_temp
 
     ldi     reg_temp, USART_TXEN_bm
@@ -47,9 +47,9 @@ osd1_init:
     ldi     reg_temp2, 32
 charloop:
     ld      ZL, X+                      ; Load character. (2c)
-    ld	    reg_temp3, Y+		; Load attribute. (2c)
+    ld	    reg_temp3, Y+               ; Load attribute. (2c)
     ld      reg_temp, Z                 ; Look up 8-pixel font line. (3c)
-    eor	    reg_temp, reg_temp3		; Apply attribute (inversion mask) (1c)
+    eor	    reg_temp, reg_temp3         ; Apply attribute (inversion mask) (1c)
     sts     USART0_TXDATAL, reg_temp    ; Clock out these pixels with MSPI. (2c)
     nop
     nop
@@ -58,7 +58,6 @@ charloop:
     brne    charloop
 .endm
 
-    .cseg
     .org 0x4000-0x1000
 font:
     .include "trivga.inc"
@@ -74,4 +73,5 @@ osd_screen_chars:
 osd_screen_attrs:
     .byte   32*16
 
+    .cseg
 #endif

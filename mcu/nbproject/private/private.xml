@@ -3,12 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/dbg_tx.inc</file>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/main.asm</file>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/helpers.inc</file>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/cfg.inc</file>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/fmem.inc</file>
-            <file>file:/home/carl/MPLABXProjects/scandoubler.X/osd.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/main.asm</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/helpers.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/dbg_tx.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/nbproject/Makefile-default.mk</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/strobes.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/fmem.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/cfg.inc</file>
+            <file>file:/home/carl/src/vtek_scandoubler/mcu/osd.inc</file>
         </group>
     </open-files>
 </project-private>
