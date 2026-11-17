@@ -47,4 +47,5 @@ strobes_wait_for_next_hstart_loop:          ; Loop until next HSTART
     rjmp    strobes_wait_for_next_hstart_loop
     in	    reg_temp, VPORTF_INTFLAGS       ; Read all the interrupt flags now.
     out     VPORTF_INTFLAGS, reg_temp       ; Clear the interrupt flags.
+    cck_sync_now                            ; Eliminate phase offset added by the polling loop.
     ret
