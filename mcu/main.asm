@@ -10,7 +10,7 @@
 
 .include "helpers.inc"
 
-#define ENABLE_DBG_TX
+#define DBG_TX_ENABLE
 ;#define ENABLE_OSD1
 
 .equ NBR_MEASURE_FRAMES         = 16    ; Number of frames over which measurements must agree.
@@ -22,7 +22,7 @@
 .equ PAL_VBLANK_LINES           = 29
 
 .def reg_zero                   = r0
-.def reg_one                    = r1
+.def reg_flags                  = r1
 .def reg_dbg_tx_rp              = r2
 .def reg_dbg_tx_wp              = r3
 .def reg_fcount                 = r4
@@ -71,6 +71,10 @@ DECLARE_PIN(PORTF, STRVSTART, 3)
 DECLARE_PIN(PORTF, CCK, 4)
 DECLARE_PIN(PORTF, DBG_TX, 5)
 
+DECLARE_FLAG(FLAG, WANT_OSD, 0)         ; User wants OSD.
+DECLARE_FLAG(FLAG, WANT_BOB, 1)         ; User wants bob rather than weave.
+DECLARE_FLAG(FLAG, WANT_BLANKER, 2)     ; User wants screen blanker.
+
     ; --------------------------
     ;  C O D E    S E G M E N T
     ; --------------------------
@@ -91,8 +95,7 @@ reset:
     cli
 
     clr     reg_zero
-    clr     reg_one
-    inc     reg_one
+    clr     reg_flags
 
     rcall   fmem_init
 
@@ -128,14 +131,14 @@ clock_wait:
     rcall   cck_sync_init
 
     rcall   cfg_init
-#ifdef ENABLE_DBG_TX
+
+#ifdef DBG_TX_ENABLE
     rcall   dbg_tx_init
 #endif
 
 #ifdef ENABLE_OSD1
     rcall   osd1_init
 #endif
-
 
 ; ------------------------------------------------
 ; MEASURE - DETERMINE PAL/NTSC and LACED/NON-LACED
@@ -145,7 +148,7 @@ DECLARE_FLAG(MEASURE_FLAG, SAW_STREQU, 1)
 DECLARE_FLAG(MEASURE_FLAG, SAW_STRLONG, 2)
 
 measure:
-#ifdef ENABLE_DBG_TX
+#ifdef DBG_TX_ENABLE
     ldi     YL, low(PM(measure_msg))
     ldi     YH, high(PM(measure_msg))
     rcall   dbg_tx_push_str
@@ -158,7 +161,8 @@ measure:
     clr     reg_fcount
 
 measure_frame:
-    mov     reg_lcount, reg_one                     ; Track nr of vblank lines * 2 for each frame.
+    clr     reg_lcount                              ; Track nr of vblank lines * 2 for each frame.
+    inc     reg_lcount
 
     ; Field 1
     rcall   strobes_wait_for_next_vstart
@@ -219,7 +223,7 @@ measure_skip_equality_check:
     ; We have NBR_MEASURE_FRAMES of valid measurements.
     ; Flags are now in reg_temp3.
 
-#ifdef ENABLE_DBG_TX
+#ifdef DBG_TX_ENABLE
     ; Print the measured nbr of lines of vblank * 2
     mov     reg_temp, reg_lcount
     rcall   dbg_tx_push_hex
@@ -250,7 +254,7 @@ measure_again_delay:
 ; NTSC NON-LACED
 ; --------------
 ntsc:
-#ifdef ENABLE_DBG_TX
+#ifdef DBG_TX_ENABLE
     ldi     YL, low(PM(ntsc_msg))
     ldi     YH, high(PM(ntsc_msg))
     rcall   dbg_tx_push_str
@@ -323,7 +327,7 @@ ntsc_end_visible_line:
 ; PAL NON-LACED
 ; --------------
 pal:
-#ifdef ENABLE_DBG_TX
+#ifdef DBG_TX_ENABLE
     ldi     YL, low(PM(pal_msg))
     ldi     YH, high(PM(pal_msg))
     rcall   dbg_tx_push_str

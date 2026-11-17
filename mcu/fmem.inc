@@ -110,8 +110,8 @@ fmem_prepare_write_address:
     mov	    reg_temp, reg_line_l
     mov	    reg_temp2, reg_line_h
 
-    add	    reg_temp, reg_one
-    adc	    reg_temp2, reg_zero
+    subi    reg_temp, -1            ; add 1 to 16 bit value
+    sbci    reg_temp2, -1
 
     lsl	    reg_temp
     rol	    reg_temp2

@@ -9,7 +9,7 @@
 ; - If size == 256 bytes, both operations use one less cycle.
 ; - Use dbg_tx_push_one to queue characters.
 ; - Call dbg_tx_transmit_one occasionally, to send outgoing characters at a reasonable pace.
-#ifdef ENABLE_DBG_TX
+#ifdef DBG_TX_ENABLE
 
 .equ DBG_TX_FIFO_SIZE           = 256
 .equ DBG_TX_BAUD                = 9600
