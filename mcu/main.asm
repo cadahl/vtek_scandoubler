@@ -75,18 +75,17 @@ DECLARE_FLAG(FLAG, WANT_OSD, 0)         ; User wants OSD.
 DECLARE_FLAG(FLAG, WANT_BOB, 1)         ; User wants bob rather than weave.
 DECLARE_FLAG(FLAG, WANT_BLANKER, 2)     ; User wants screen blanker.
 
-    ; --------------------------
-    ;  C O D E    S E G M E N T
-    ; --------------------------
     .cseg
     .org    0
     rjmp    reset
+
     ; INTERRUPT VECTORS GO HERE
 
     .org    INT_VECTORS_SIZE
-.include "cck_sync.inc"
+
 .include "cfg.inc"
 .include "dbg_tx.inc"
+.include "ext_sync.inc"
 .include "osd.inc"
 .include "fmem.inc"
 .include "strobes.inc"
@@ -112,7 +111,7 @@ reset:
 
     ldi     reg_temp, CPU_CCP_IOREG_gc              ; CCP key, we want to change IO regs.
 
-    ldi     reg_temp2, CLKCTRL_FRQRANGE_32M_gc | CLKCTRL_SELHF_EXTCLOCK_gc | CLKCTRL_ENABLE_bm  ; SELHF bit set = extclk
+    ldi     reg_temp2, CLKCTRL_FRQRANGE_32M_gc | CLKCTRL_SELHF_EXTCLOCK_gc | CLKCTRL_ENABLE_bm
     out     CPU_CCP, reg_temp                       ; Unlock for four cycles.
     sts     CLKCTRL_XOSCHFCTRLA, reg_temp2
 
@@ -128,7 +127,7 @@ clock_wait:
     sbrc    reg_temp2, CLKCTRL_SOSC_bp
     rjmp    clock_wait
 
-    rcall   cck_sync_init
+    rcall   ext_sync_init
 
     rcall   cfg_init
 
@@ -407,7 +406,6 @@ pal_visible_line2:
 pal_end_visible_line2:
 
     rjmp    pal_frame
-
 
 measure_msg:
     .db "MEASURE", 13, 10, 0

@@ -62,9 +62,6 @@ charloop:
 font:
     .include "trivga.inc"
 
-; --------------------------
-;  D A T A    S E G M E N T
-; --------------------------
     .dseg
 osd_screen_prealign:
     .org (osd_screen_prealign + 256) & 0xFFFF00
@@ -73,5 +70,4 @@ osd_screen_chars:
 osd_screen_attrs:
     .byte   32*16
 
-    .cseg
 #endif

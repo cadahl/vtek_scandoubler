@@ -3,20 +3,25 @@
 ;     DUBLINA firmware
 ;  (c)2026 VTek/Carl Ådahl
 ; -------------------------
-; Synchronization with CCK signal and a method of synchronizing execution
-; with arbitrary signals that we POLL with the CPU.
-
-; It is assumed that such polling loops take 3 cycles per iteration.
-; Without synchronization, exiting such a polling loop (e.g. detecting a rising
-; edge), execution might be randomly offset by 0, 1 or 2 cycles.
-
-; We use two timers to eliminate this random offset:
-; TCB0 continuously counts 0, 1, 2, 0, 1, 2, ... on MCU clocks (f_CCK * 8)
+; A clock initially in phase with CCK, used for synchronizing MCU execution
+; with arbitrary external signals that we poll - e.g. the strobes from the GAL.
+;
+; It is assumed that such polling loops take 3 cycles per iteration, the signal
+; being sampled during one of them.
+;
+; After such a polling loop (e.g. detecting a rising edge), MCU execution is
+; randomly offset by 0, 1 or 2 cycles relative to the external signal edge.
+;
+; We want a predictable offset.
+;
+; To eliminate the randomness, we use two timers:
+; TCB0 continuously counts 0, 1, 2, 0, 1, 2, ... on MCU clocks (f_CCK * 8).
 ; TCA0 is set up as the clock source for TCB0.
 ; TCA0 is started by using CCK going high.
 ; Synchronization involves a second loop where we poll for TCB_CNT=0.
 
-cck_sync_init:
+    .cseg
+ext_sync_init:
     ldi     reg_temp, PORTF_CCK_BM
     sts     PORTF_DIRCLR, reg_temp              ; CCK pin is an input
 
@@ -53,7 +58,7 @@ cck_sync_init:
     sts     TCB0_CTRLA, reg_temp
 
 ; Call this to resynchronize with CCK.
-cck_sync_reset:
+ext_sync_reset:
     lds     reg_temp, TCA0_SINGLE_CTRLA
     andi    reg_temp, ~TCA_SINGLE_ENABLE_bm
     sts     TCA0_SINGLE_CTRLA, reg_temp
@@ -75,9 +80,9 @@ cck_sync_reset:
 ; After an external signal has been polled in a loop taking 3 cycles per
 ; iteration, invoking this macro will align execution a FIXED nr of
 ; clocks after the rising edge of the signal.
-.macro cck_sync_now
-cck_sync_now_loop:
+.macro ext_sync_now
+ext_sync_now_loop:
     lds     reg_temp, TCB0_CNT      ; (2c) This loop takes 5 cycles and will
     tst     reg_temp                ; (1c) eventually find that TCB0_CNT = 0.
-    brne    cck_sync_now_loop       ; (2c/1c) This means we are synced.
+    brne    ext_sync_now_loop       ; (2c/1c) This means we are synced.
 .endm

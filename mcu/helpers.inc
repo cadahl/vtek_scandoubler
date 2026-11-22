@@ -15,15 +15,14 @@
 
 ; Set convenient equs with _PIN, _BM and _PINCTRL for a named GPIO pin.
 #define DECLARE_PIN(port, name, n) \
-    .equ port##_##name##_PIN      = n \
+    .equ port##_##name##_PIN      = (n) \
     .equ port##_##name##_BM       = (1 << (n)) \
     .equ port##_##name##_PINCTRL  = port##_PIN##n##CTRL
 
 ; Set convenient equs with _BIT and _BM for a named flag.
 #define DECLARE_FLAG(field, name, n) \
-    .equ field##_##name##_BIT      = n \
+    .equ field##_##name##_BIT      = (n) \
     .equ field##_##name##_BM       = (1 << (n))
-
 
 ; Generate an efficient NOP sequence for the specified exact nr of cycles.
 .macro wait

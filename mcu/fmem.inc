@@ -248,7 +248,6 @@ fmem_init_write:
     nop
     ret
 
-
 .macro fmem_start_read
     sbi     VPORTD_OUT, PORTD_FMEM_RE_PIN
     sbi     VPORTD_OUT, PORTD_FMEM_OE_PIN

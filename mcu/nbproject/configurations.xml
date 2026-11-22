@@ -25,7 +25,7 @@
       <itemPath>cfg.inc</itemPath>
       <itemPath>main.asm</itemPath>
       <itemPath>strobes.inc</itemPath>
-      <itemPath>cck_sync.inc</itemPath>
+      <itemPath>ext_sync.inc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -36,7 +36,7 @@
         <targetDevice>AVR32DD32</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>Simulator</platformTool>
+        <platformTool>snap</platformTool>
         <languageToolchain>AVRASM</languageToolchain>
         <languageToolchainVersion>1.00</languageToolchainVersion>
         <platform>2</platform>
@@ -1101,7 +1101,7 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.simultaneous.debug" value="false"/>
-        <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="debugoptions.useswbreakpoints" value="true"/>
         <property key="event.recorder.debugger.behavior" value="Running"/>
         <property key="event.recorder.enabled" value="false"/>
         <property key="event.recorder.scvd.files" value=""/>
@@ -1120,8 +1120,6 @@
                   value="${memories.instruction.ram.ranges}"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-3fff"/>
-        <property key="programmerToGoFilePath"
-                  value="/home/carl/src/vtek_scandoubler/mcu/debug/default/default_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.pgmentry.voltage" value="low"/>

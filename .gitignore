@@ -1,3 +1,4 @@
 /mcu/build/
 /mcu/dist/
 mcu/main.hex
+mcu/defmplabxtrace.*
