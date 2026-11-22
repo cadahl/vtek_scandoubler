@@ -96,14 +96,15 @@ dbg_tx_transmit_one_skip_send:
     andi    XL, DBG_TX_FIFO_SIZE-1          ; (1c) wrap pointer to power of two FIFO size.
 .endif
     mov     reg_dbg_tx_rp, XL               ; (1c) store the advanced and wrapped read pointer.
-
     ret
 
-
 dbg_tx_flush:
+    push    reg_temp3
+dbg_tx_flush_loop:
     rcall   dbg_tx_transmit_one
     cpi	    reg_temp, 4                     ; loop until EOT
-    brne    dbg_tx_flush
+    brne    dbg_tx_flush_loop
+    pop     reg_temp3
     ret
 
 ; Push character in reg_temp to the debug tx FIFO.
@@ -113,13 +114,13 @@ dbg_tx_flush:
     ; Clobbers:
     ;   XL, XH
     mov     XL, reg_dbg_tx_wp
-    ldi     XH, high(dbg_tx_fifo)           ; X = points into FIFO at write position.
-    st      X+, reg_temp                    ; Store the character, even if the FIFO will turn out to be full below.
+    ldi     XH, high(dbg_tx_fifo)   ; X = points into FIFO at write position.
+    st      X+, reg_temp            ; Store the character, even if the FIFO will turn out to be full below.
 .if DBG_TX_FIFO_SIZE != 256
-    andi    XL, DBG_TX_FIFO_SIZE-1          ; Wrap pointer to power of two FIFO size.
+    andi    XL, DBG_TX_FIFO_SIZE-1  ; Wrap pointer to power of two FIFO size.
 .endif
-    cpse    XL, reg_dbg_tx_rp               ; If full, we skip storing the wrapped and advanced write pointer.
-    mov     reg_dbg_tx_wp, XL               ; This is safe because in a full FIFO, write pointer + 1 == read pointer.
+    cpse    XL, reg_dbg_tx_rp       ; If full, we skip storing the wrapped and advanced write pointer.
+    mov     reg_dbg_tx_wp, XL       ; This is safe because in a full FIFO, write pointer + 1 == read pointer.
 .endm
 
 ; Initialize debug tx.
@@ -129,17 +130,6 @@ dbg_tx_init:
     sbi     VPORTF_OUT, PORTF_DBG_TX_PIN    ; The TX line will idle high.
     ldi     reg_temp, PORTF_DBG_TX_BM
     sts     PORTF_DIRSET, reg_temp          ; Set it as an output.
-
-;    ldi     reg_temp, low(DBG_TX_BAUDVAL)
-;    sts     USART1_BAUDL, reg_temp
-;    ldi     reg_temp, high(DBG_TX_BAUDVAL)
-;    sts     USART1_BAUDH, reg_temp
-
-;    ldi     reg_temp, USART_NORMAL_CHSIZE_8BIT_gc      ; 8N1
-;    sts     USART1_CTRLC, reg_temp
-
-;    ldi     reg_temp, USART_TXEN_bm
-;    sts     USART1_CTRLB, reg_temp
     ret
 
 ; Push value in reg_temp as its two character hex string representation,
@@ -181,15 +171,10 @@ hex_tbl_prealign:
 hex_tbl:
     .db "0123456789ABCDEF"
 
-; --------------------------
-;  D A T A    S E G M E N T
-; --------------------------
     .dseg
 dbg_tx_fifo_prealign:
     .org (dbg_tx_fifo_prealign + 256) & 0xFFFF00
 dbg_tx_fifo:
     .byte   DBG_TX_FIFO_SIZE                    ; Must be aligned to 256 bytes
 dbg_tx_fifo_end:
-
-    .cseg
 #endif
