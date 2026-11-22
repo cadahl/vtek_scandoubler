@@ -52,8 +52,8 @@ dbg_tx_transmit_one:
     cbi	    VPORTF_OUT, PORTF_DBG_TX_PIN    ; (1c)
     wait    DBG_TX_CYCLES_PER_BIT-1-6	    ; 1 cycle above, 6 cycles below
 
-    push    reg_temp2                       ; (2c)
     push    reg_temp3
+    push    reg_temp2                       ; (2c)
 
     ldi	    reg_temp2, 8                    ; (1c)
 dbg_tx_transmit_one_bit_loop:
